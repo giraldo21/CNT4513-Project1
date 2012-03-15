@@ -39,12 +39,13 @@ public class ChatServer extends Thread
                 // receive message
                 DatagramPacket packet = new DatagramPacket(message, message.length);
                 socket.receive(packet);
-
-                // compute checksum
-
-                // if checksum is bad, respond to client with error message
-
-                // else print message in conversation log
+                String[] data = receiveMsg(packet);
+                
+                // if checksum is "good", print message contents to convo log
+                if (chkMsg(data))
+                    System.out.println(data[1]);
+                else
+                    printChkSumError();
             }
             catch (IOException e)
             {
@@ -52,20 +53,35 @@ public class ChatServer extends Thread
             }
         }
     }
-    
-    public void receiveMsg()
+
+    public String[] receiveMsg(DatagramPacket packet)
     {
-    
+        String allData = new String(packet.getData(), 0, packet.getLength());
+        String[] data = allData.split("\n", 2);
+        
+        return data;
     }
     
-    public void computeChkSum()
-    {
+    public boolean chkMsg(String[] data)
+    {        
+        // extract checksum and message strings from packet data
+        int chksum = Integer.parseInt(data[0]);
+        String msg = data[1];
+
+        // count characters in message
+        int numChar = msg.length();
         
+        // if checksum count is equal to message count, message is "good"
+        if (chksum == numChar)
+            return true;
+        
+        // else, message is bad
+        return false; 
     }
 
     public void printChkSumError()
     {
-        
+        System.out.println("The message was not received correctly.");
     }
     
 }
